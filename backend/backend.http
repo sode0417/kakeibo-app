@@ -1,6 +1,26 @@
-@backend_HostAddress = http://localhost:5268
+### Get all records
+GET http://localhost:5268/api/records
 
-GET {{backend_HostAddress}}/weatherforecast/
-Accept: application/json
+### Create a new record
+POST http://localhost:5268/api/records
+Content-Type: application/json
 
-###
+{
+  "date": "2025-05-10",
+  "amount": 1000,
+  "categoryId": "1",
+  "memo": "Test memo",
+  "type": "expense"
+}
+
+### Get all categories
+GET http://localhost:5268/api/categories
+
+### Create a new category
+POST http://localhost:5268/api/categories
+Content-Type: application/json
+
+{
+  "name": "Test Category",
+  "color": "#FF0000"
+}

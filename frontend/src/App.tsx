@@ -5,7 +5,57 @@ import EntryForm from './EntryForm'
 import HistoryList from './HistoryList'
 import CategoryManager from './CategoryManager'
 
+import { useEffect } from 'react';
+import { getRecords, getCategories, createRecord, createCategory } from './api/apiClient';
+
 function App() {
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const records = await getRecords();
+        console.log('Records:', records);
+        const categories = await getCategories();
+        console.log('Categories:', categories);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+
+    const handleCreateRecord = async () => {
+      try {
+        const newRecord = {
+          date: "2025-05-10",
+          amount: 2000,
+          categoryId: "1",
+          memo: "Sample memo",
+          type: "expense" as "expense" | "income",
+        };
+        const createdRecord = await createRecord(newRecord);
+        console.log("Created Record:", createdRecord);
+      } catch (error) {
+        console.error("Error creating record:", error);
+      }
+    };
+
+    const handleCreateCategory = async () => {
+      try {
+        const newCategory = {
+          name: "Sample Category",
+          color: "#FF0000",
+        };
+        const createdCategory = await createCategory(newCategory);
+        console.log("Created Category:", createdCategory);
+      } catch (error) {
+        console.error("Error creating category:", error);
+      }
+    };
+
+    // Example usage
+    handleCreateRecord();
+    handleCreateCategory();
+  }, []);
   const [tab, setTab] = useState(0)
 
   const handleChange = (_: React.SyntheticEvent, newValue: number) => {
