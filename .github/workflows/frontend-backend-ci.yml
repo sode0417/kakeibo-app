@@ -1,0 +1,82 @@
+name: Frontend and Backend CI/CD
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  frontend:
+    name: Frontend CI/CD
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm install
+
+      - name: Run Linter
+        run: |
+          cd frontend
+          npm run lint
+
+      - name: Run Tests
+        run: |
+          cd frontend
+          npm test
+
+      - name: Deploy to Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          cd frontend
+          npx vercel --prod
+
+  backend:
+    name: Backend CI/CD
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          dotnet restore
+
+      - name: Run Linter
+        run: |
+          cd backend
+          dotnet format --check
+
+      - name: Run Tests
+        run: |
+          cd backend
+          dotnet test
+
+      - name: Deploy to AWS Elastic Beanstalk
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: "ap-northeast-1"
+        run: |
+          cd backend
+          dotnet publish -c Release -o ./publish
+          eb init --platform "dotnet-core" --region "ap-northeast-1"
+          eb deploy
