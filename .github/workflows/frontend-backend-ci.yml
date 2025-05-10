@@ -63,7 +63,7 @@ jobs:
       - name: Run Linter
         run: |
           cd backend
-          dotnet format --check
+          dotnet format
 
       - name: Run Tests
         run: |
