@@ -3,6 +3,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddDbContext<DatabaseContext>(options =>
+    options.UseSqlite("Data Source=kakeibo.db"));
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddCors(options =>
@@ -48,33 +50,34 @@ app.MapGet("/weatherforecast", () =>
 .WithName("GetWeatherForecast")
 .WithOpenApi();
 
-var records = new List<Record>();
-var categories = new List<Category>();
 
 // Records Endpoints
-app.MapGet("/api/records", () => records);
-app.MapPost("/api/records", (Record record) =>
+app.MapGet("/api/records", async (DatabaseContext db) => await db.Records.ToListAsync());
+app.MapPost("/api/records", async (DatabaseContext db, Record record) =>
 {
     record.Id = Guid.NewGuid().ToString();
-    records.Add(record);
+    db.Records.Add(record);
+    await db.SaveChangesAsync();
     return Results.Created($"/api/records/{record.Id}", record);
 });
-app.MapPut("/api/records/{id}", (string id, Record updatedRecord) =>
+app.MapPut("/api/records/{id}", async (DatabaseContext db, string id, Record updatedRecord) =>
 {
-    var record = records.FirstOrDefault(r => r.Id == id);
+    var record = await db.Records.FindAsync(id);
     if (record is null) return Results.NotFound();
     record.Date = updatedRecord.Date;
     record.Amount = updatedRecord.Amount;
     record.CategoryId = updatedRecord.CategoryId;
     record.Memo = updatedRecord.Memo;
     record.Type = updatedRecord.Type;
+    await db.SaveChangesAsync();
     return Results.NoContent();
 });
-app.MapDelete("/api/records/{id}", (string id) =>
+app.MapDelete("/api/records/{id}", async (DatabaseContext db, string id) =>
 {
-    var record = records.FirstOrDefault(r => r.Id == id);
+    var record = await db.Records.FindAsync(id);
     if (record is null) return Results.NotFound();
-    records.Remove(record);
+    db.Records.Remove(record);
+    await db.SaveChangesAsync();
     return Results.NoContent();
 });
 
