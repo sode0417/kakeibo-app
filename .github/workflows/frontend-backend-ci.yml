@@ -50,6 +50,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Setup Python for Elastic Beanstalk CLI
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.x
+
+      - name: Install Elastic Beanstalk CLI
+        run: |
+          pip install awsebcli --upgrade
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
