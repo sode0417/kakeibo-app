@@ -102,6 +102,13 @@ app.MapDelete("/api/categories/{id}", (string id) =>
     return Results.NoContent();
 });
 
+app.MapPost("/api/reset", () =>
+{
+    categories.Clear();
+    records.Clear();
+    return Results.Ok("Data has been reset.");
+});
+
 app.Run();
 
 record Record

@@ -20,8 +20,8 @@ const apiClient = axios.create({
   },
 });
 
-export const getRecords = async () => {
-  const response = await apiClient.get('/records');
+export const getRecords = async (): Promise<Record[]> => {
+  const response = await apiClient.get<Record[]>('/records');
   return response.data;
 };
 
@@ -31,12 +31,14 @@ export const getCategories = async () => {
 };
 
 export const createRecord = async (record: Record) => {
+  console.log("Sending record data:", record);
   const response = await apiClient.post('/records', record);
   return response.data;
 };
 
-export const createCategory = async (category: Category) => {
-  const response = await apiClient.post('/categories', category);
+export const createCategory = async (category: Category): Promise<{ id: string; name: string; color?: string }> => {
+  console.log("Sending category data:", category);
+  const response = await apiClient.post<{ id: string; name: string; color?: string }>('/categories', category);
   return response.data;
 };
 
