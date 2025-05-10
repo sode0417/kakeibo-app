@@ -1,8 +1,11 @@
+using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddDbContext<DatabaseContext>(options =>
+    options.UseSqlite("Data Source=kakeibo.db"));
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddCors(options =>
@@ -48,85 +51,50 @@ app.MapGet("/weatherforecast", () =>
 .WithName("GetWeatherForecast")
 .WithOpenApi();
 
-var records = new List<Record>();
-var categories = new List<Category>();
 
 // Records Endpoints
-app.MapGet("/api/records", () => records);
-app.MapPost("/api/records", (Record record) =>
+app.MapGet("/api/records", async (DatabaseContext db) => await db.Records.ToListAsync());
+app.MapPost("/api/records", async (DatabaseContext db, Record record) =>
 {
     record.Id = Guid.NewGuid().ToString();
-    records.Add(record);
+    db.Records.Add(record);
+    await db.SaveChangesAsync();
     return Results.Created($"/api/records/{record.Id}", record);
 });
-app.MapPut("/api/records/{id}", (string id, Record updatedRecord) =>
+app.MapPut("/api/records/{id}", async (DatabaseContext db, string id, Record updatedRecord) =>
 {
-    var record = records.FirstOrDefault(r => r.Id == id);
+    var record = await db.Records.FindAsync(id);
     if (record is null) return Results.NotFound();
     record.Date = updatedRecord.Date;
     record.Amount = updatedRecord.Amount;
     record.CategoryId = updatedRecord.CategoryId;
     record.Memo = updatedRecord.Memo;
     record.Type = updatedRecord.Type;
+    await db.SaveChangesAsync();
     return Results.NoContent();
 });
-app.MapDelete("/api/records/{id}", (string id) =>
+app.MapDelete("/api/records/{id}", async (DatabaseContext db, string id) =>
 {
-    var record = records.FirstOrDefault(r => r.Id == id);
+    var record = await db.Records.FindAsync(id);
     if (record is null) return Results.NotFound();
-    records.Remove(record);
+    db.Records.Remove(record);
+    await db.SaveChangesAsync();
     return Results.NoContent();
 });
 
 // Categories Endpoints
-app.MapGet("/api/categories", () => categories);
-app.MapPost("/api/categories", (Category category) =>
+app.MapGet("/api/categories", async (DatabaseContext db) => await db.Categories.ToListAsync());
+app.MapPost("/api/categories", async (DatabaseContext db, Category category) =>
 {
     category.Id = Guid.NewGuid().ToString();
-    categories.Add(category);
+    db.Categories.Add(category);
+    await db.SaveChangesAsync();
     return Results.Created($"/api/categories/{category.Id}", category);
 });
-app.MapPut("/api/categories/{id}", (string id, Category updatedCategory) =>
-{
-    var category = categories.FirstOrDefault(c => c.Id == id);
-    if (category is null) return Results.NotFound();
-    category.Name = updatedCategory.Name;
-    category.Color = updatedCategory.Color;
-    return Results.NoContent();
-});
-app.MapDelete("/api/categories/{id}", (string id) =>
-{
-    var category = categories.FirstOrDefault(c => c.Id == id);
-    if (category is null) return Results.NotFound();
-    categories.Remove(category);
-    return Results.NoContent();
-});
 
-app.MapPost("/api/reset", () =>
-{
-    categories.Clear();
-    records.Clear();
-    return Results.Ok("Data has been reset.");
-});
 
 app.Run();
 
-record Record
-{
-    public string Id { get; set; } = default!;
-    public string Date { get; set; } = default!;
-    public decimal Amount { get; set; }
-    public string CategoryId { get; set; } = default!;
-    public string? Memo { get; set; }
-    public string Type { get; set; } = default!;
-}
-
-record Category
-{
-    public string Id { get; set; } = default!;
-    public string Name { get; set; } = default!;
-    public string? Color { get; set; }
-}
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
