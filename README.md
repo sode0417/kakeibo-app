@@ -35,6 +35,13 @@ kakeibo-app/
    ```bash
    dotnet run
    ```
+### データベース接続
+1. SQLite データベースを使用しています。デフォルトのデータベースファイルは `backend/kakeibo.db` にあります。
+2. データベースのマイグレーションを適用するには以下を実行してください。
+   ```bash
+   cd backend
+   dotnet ef database update
+   ```
 
 ## 使用方法
 1. フロントエンドの開発サーバーにアクセスします。
