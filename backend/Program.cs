@@ -15,7 +15,7 @@ builder.Services.AddDbContext<DatabaseContext>(options =>
     options.UseSqlite("Data Source=kakeibo.db"));
 builder.Services.AddSwaggerGen();
 
-var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? new[] { "http://localhost:5173" };
+var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? new[] { "http://localhost:5173", "http://localhost:5174" };
 
 builder.Services.AddCors(options =>
 {
@@ -151,6 +151,32 @@ app.MapPost("/api/categories", async (DatabaseContext db, Category category) =>
     }
 });
 
+// DELETE endpoint for categories
+app.MapDelete("/api/categories/{id}", async (DatabaseContext db, string id) =>
+{
+    try
+    {
+        // Check if category exists
+        var category = await db.Categories.FindAsync(id);
+        if (category is null) return Results.NotFound();
+
+        // Check if category is in use
+        var isInUse = await db.Records.AnyAsync(r => r.CategoryId == id);
+        if (isInUse)
+        {
+            return Results.BadRequest("このカテゴリは使用中のため削除できません");
+        }
+
+        // Delete category
+        db.Categories.Remove(category);
+        await db.SaveChangesAsync();
+        return Results.NoContent();
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
+});
 
 
 app.Run();

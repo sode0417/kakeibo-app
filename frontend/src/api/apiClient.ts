@@ -68,4 +68,13 @@ export const createCategory = async (category: CategoryInput): Promise<Category>
   }
 };
 
+export const deleteCategory = async (id: string): Promise<void> => {
+  try {
+    await apiClient.delete(`/categories/${id}`);
+  } catch (error) {
+    console.error("Error deleting category:", error);
+    throw error;
+  }
+};
+
 export default apiClient;
