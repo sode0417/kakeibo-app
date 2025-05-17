@@ -1,6 +1,6 @@
 import { Box, Button, List, ListItem, ListItemText, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { createCategory, getCategories } from './api/apiClient';
+import { createCategory, getCategories, type Category } from './api/apiClient';
 import type { Record } from './App';
 
 interface CategoryManagerProps {
@@ -10,7 +10,7 @@ interface CategoryManagerProps {
 }
 
 export default function CategoryManager({ children, setRecords, fetchData }: CategoryManagerProps) {
-  const [categories, setCategories] = useState<{ id: string; name: string; color?: string }[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
 
     const handleCreateCategory = async (categoryName: string) => {
     try {
@@ -45,7 +45,7 @@ export default function CategoryManager({ children, setRecords, fetchData }: Cat
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const data = await getCategories() as { id: string; name: string; color?: string }[];
+        const data = await getCategories();
         setCategories(data);
       } catch (error) {
         console.error("Error fetching categories:", error);

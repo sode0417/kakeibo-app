@@ -18,14 +18,20 @@ export type Record = {
 
 const fetchData = async (setRecords: React.Dispatch<React.SetStateAction<Record[]>>) => {
   try {
-    const records = await getRecords();
-    const mappedRecords = records.map(record => ({
-      ...record,
-      category: "未分類" // 仮のカテゴリ名を設定
-    }));
+    const [records, categories] = await Promise.all([
+      getRecords(),
+      getCategories()
+    ]);
+
+    const mappedRecords = records.map(record => {
+      const category = categories.find(c => c.id === record.categoryId);
+      return {
+        ...record,
+        category: category ? category.name : "未分類"
+      };
+    });
+
     setRecords(mappedRecords as Record[]);
-    const categories = await getCategories();
-    console.log('Categories:', categories);
   } catch (error) {
     console.error('Error fetching data:', error);
   }
@@ -33,12 +39,15 @@ const fetchData = async (setRecords: React.Dispatch<React.SetStateAction<Record[
 
 function App() {
   const [records, setRecords] = useState<Record[]>([]);
+  const [tab, setTab] = useState(0);
 
   useEffect(() => {
     fetchData(setRecords);
   }, []);
 
-  const [tab, setTab] = useState(0);
+  const handleRecordAdded = () => {
+    fetchData(setRecords);
+  };
 
   const handleChange = (_: React.SyntheticEvent, newValue: number) => {
     setTab(newValue)
@@ -75,7 +84,7 @@ function App() {
       </AppBar>
       <Box alignContent={'center'} sx={{ padding: 2 }}>
           {tab === 0 && <Dashboard records={records} />}
-          {tab === 1 && <EntryForm />}
+          {tab === 1 && <EntryForm onRecordAdded={handleRecordAdded} />}
           {tab === 2 && <HistoryList records={records} />}
           {tab === 3 && (
             <CategoryManager setRecords={setRecords} fetchData={fetchData} />

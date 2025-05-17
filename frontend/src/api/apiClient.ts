@@ -8,7 +8,13 @@ type Record = {
   type: 'income' | 'expense';
 };
 
-type Category = {
+export type Category = {
+  id: string;
+  name: string;
+  color?: string;
+};
+
+export type CategoryInput = {
   name: string;
   color?: string;
 };
@@ -30,9 +36,9 @@ export const getRecords = async (): Promise<Record[]> => {
   }
 };
 
-export const getCategories = async () => {
+export const getCategories = async (): Promise<Category[]> => {
   try {
-    const response = await apiClient.get('/categories');
+    const response = await apiClient.get<Category[]>('/categories');
     return response.data;
   } catch (error) {
     console.error("Error fetching categories:", error);
@@ -51,10 +57,10 @@ export const createRecord = async (record: Record) => {
   }
 };
 
-export const createCategory = async (category: Category): Promise<{ id: string; name: string; color?: string }> => {
+export const createCategory = async (category: CategoryInput): Promise<Category> => {
   try {
     console.log("Sending category data:", category);
-    const response = await apiClient.post<{ id: string; name: string; color?: string }>('/categories', category);
+    const response = await apiClient.post<Category>('/categories', category);
     return response.data;
   } catch (error) {
     console.error("Error creating category:", error);
