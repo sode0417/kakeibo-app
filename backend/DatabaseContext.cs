@@ -10,12 +10,14 @@ public class Record
     public string Type { get; set; } = default!;
 }
 
+
 public class Category
 {
     public string Id { get; set; } = default!;
     public string Name { get; set; } = default!;
     public string? Color { get; set; }
 }
+
 public class DatabaseContext : DbContext
 {
     public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options)

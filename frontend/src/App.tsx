@@ -11,7 +11,7 @@ export type Record = {
     date: string;
     amount: number;
     categoryId: string;
-    category: string;
+    category?: string;
     memo?: string;
     type: 'income' | 'expense';
 };
@@ -60,7 +60,12 @@ function App() {
           textColor="primary"
           indicatorColor="primary"
           aria-label="家計簿アプリの画面切替タブ"
-          sx={{ bgcolor: 'background.paper' }}
+          sx={{
+            bgcolor: 'background.paper',
+            '& .Mui-selected': {
+              fontWeight: 'bold',
+            },
+          }}
         >
           <Tab label="ダッシュボード" />
           <Tab label="収支入力" />

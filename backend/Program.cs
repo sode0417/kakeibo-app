@@ -1,5 +1,12 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Mvc;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
+    .AddEnvironmentVariables();
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -8,11 +15,13 @@ builder.Services.AddDbContext<DatabaseContext>(options =>
     options.UseSqlite("Data Source=kakeibo.db"));
 builder.Services.AddSwaggerGen();
 
+var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? new[] { "http://localhost:5173" };
+
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(builder =>
+    options.AddDefaultPolicy(policy =>
     {
-        builder.AllowAnyOrigin()
+        policy.WithOrigins(allowedOrigins)
                .AllowAnyHeader()
                .AllowAnyMethod();
     });
@@ -27,7 +36,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors();
 app.UseCors();
 // app.UseHttpsRedirection(); // Disable HTTPS redirection for debugging
 
@@ -53,44 +61,96 @@ app.MapGet("/weatherforecast", () =>
 
 
 // Records Endpoints
-app.MapGet("/api/records", async (DatabaseContext db) => await db.Records.ToListAsync());
+app.MapGet("/api/records", async (HttpContext context, [FromServices] DatabaseContext db) =>
+{
+    try
+    {
+        var records = await db.Records.ToListAsync();
+        return Results.Ok(records);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
+});
+
 app.MapPost("/api/records", async (DatabaseContext db, Record record) =>
 {
-    record.Id = Guid.NewGuid().ToString();
-    db.Records.Add(record);
-    await db.SaveChangesAsync();
-    return Results.Created($"/api/records/{record.Id}", record);
+    try
+    {
+        record.Id = Guid.NewGuid().ToString();
+        db.Records.Add(record);
+        await db.SaveChangesAsync();
+        return Results.Created($"/api/records/{record.Id}", record);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
 });
 app.MapPut("/api/records/{id}", async (DatabaseContext db, string id, Record updatedRecord) =>
 {
-    var record = await db.Records.FindAsync(id);
-    if (record is null) return Results.NotFound();
-    record.Date = updatedRecord.Date;
-    record.Amount = updatedRecord.Amount;
-    record.CategoryId = updatedRecord.CategoryId;
-    record.Memo = updatedRecord.Memo;
-    record.Type = updatedRecord.Type;
-    await db.SaveChangesAsync();
-    return Results.NoContent();
+    try
+    {
+        var record = await db.Records.FindAsync(id);
+        if (record is null) return Results.NotFound();
+        record.Date = updatedRecord.Date;
+        record.Amount = updatedRecord.Amount;
+        record.CategoryId = updatedRecord.CategoryId;
+        record.Memo = updatedRecord.Memo;
+        record.Type = updatedRecord.Type;
+        await db.SaveChangesAsync();
+        return Results.NoContent();
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
 });
 app.MapDelete("/api/records/{id}", async (DatabaseContext db, string id) =>
 {
-    var record = await db.Records.FindAsync(id);
-    if (record is null) return Results.NotFound();
-    db.Records.Remove(record);
-    await db.SaveChangesAsync();
-    return Results.NoContent();
+    try
+    {
+        var record = await db.Records.FindAsync(id);
+        if (record is null) return Results.NotFound();
+        db.Records.Remove(record);
+        await db.SaveChangesAsync();
+        return Results.NoContent();
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
 });
 
 // Categories Endpoints
-app.MapGet("/api/categories", async (DatabaseContext db) => await db.Categories.ToListAsync());
+app.MapGet("/api/categories", async (HttpContext context, [FromServices] DatabaseContext db) =>
+{
+    try
+    {
+        var categories = await db.Categories.ToListAsync();
+        return Results.Ok(categories);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
+});
 app.MapPost("/api/categories", async (DatabaseContext db, Category category) =>
 {
-    category.Id = Guid.NewGuid().ToString();
-    db.Categories.Add(category);
-    await db.SaveChangesAsync();
-    return Results.Created($"/api/categories/{category.Id}", category);
+    try
+    {
+        category.Id = Guid.NewGuid().ToString();
+        db.Categories.Add(category);
+        await db.SaveChangesAsync();
+        return Results.Created($"/api/categories/{category.Id}", category);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
 });
+
 
 
 app.Run();

@@ -8,16 +8,17 @@ type Record = {
   date: string;
   amount: number;
   categoryId: string;
-  category: string;
+  category?: string;
 };
 
 export default function Dashboard({ records }: { records: Record[] }) {
   const categoryData = records.reduce((acc, record) => {
-    const category = acc.find(item => item.name === record.category);
+    const categoryName = record.category || "未分類";
+    const category = acc.find(item => item.name === categoryName);
     if (category) {
       category.value += record.amount;
     } else {
-      acc.push({ name: record.category, value: record.amount });
+      acc.push({ name: categoryName, value: record.amount });
     }
     return acc;
   }, [] as { name: string; value: number }[]);

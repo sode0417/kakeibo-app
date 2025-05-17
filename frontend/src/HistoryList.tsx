@@ -5,7 +5,7 @@ type Record = {
   id: string;
   date: string;
   amount: number;
-  category: string;
+  category?: string;
   type: 'income' | 'expense';
   memo?: string;
 };
@@ -19,7 +19,7 @@ export default function HistoryList({ records }: { records: Record[] }) {
         {records.map(rec => (
           <ListItem key={rec.id} divider>
             <ListItemText
-              primary={`${rec.date}  ${rec.category}  ${rec.amount.toLocaleString()}円`}
+              primary={`${rec.date}  ${rec.category || "未分類"}  ${rec.amount.toLocaleString()}円`}
               secondary={rec.memo}
             />
             <Chip
