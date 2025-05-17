@@ -7,6 +7,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
 dist
 dist-ssr
@@ -22,3 +23,25 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# .NET build output
+backend/bin/
+backend/obj/
+*.dll
+*.exe
+*.pdb
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+
+# Debug files
+*.user
+*.userosscache
+*.dbmdl
+*.jfm
+*.vs/
+
+# Generated files
+backend/wwwroot/
